@@ -7,8 +7,19 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 	<SCOREFXNS>
 		# The current Rosetta default scorefunction.
 		<ScoreFunction name="ref" weights="ref2015" />
-		# The default scorefunction with increased hydrogen bond weights, aa_composition, aspartimide_penalty, and constraints.
+		# The default scorefunction with high hydrogen bond weights, aa_composition, aspartimide_penalty, and constraints.
 		<ScoreFunction name="ref_highhbond" weights="ref2015" >
+			<Reweight scoretype="hbond_lr_bb" weight="20.0" />
+			<Reweight scoretype="hbond_sr_bb" weight="20.0" />
+			<Reweight scoretype="aa_composition" weight="1.0" />
+			<Reweight scoretype="aspartimide_penalty" weight="1.0" />
+			<Reweight scoretype="chainbreak" weight="25.0" />
+			<Reweight scoretype="voids_penalty" weight="0.1" />
+			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
+			<Reweight scoretype="metalbinding_constraint" weight="1.0" />
+		</ScoreFunction>
+		# The default scorefunction with increased hydrogen bond weights, aa_composition, aspartimide_penalty, and constraints.
+		<ScoreFunction name="ref_mediumhbond" weights="ref2015" >
 			<Reweight scoretype="hbond_lr_bb" weight="10.0" />
 			<Reweight scoretype="hbond_sr_bb" weight="10.0" />
 			<Reweight scoretype="aa_composition" weight="1.0" />
@@ -85,12 +96,16 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 		# Prohibit glycine and methionine everywhere:
     	<ProhibitSpecifiedBaseResidueTypes name="no_gly_met_cys" base_types="GLY,MET,DMET,CYS" />
 		
+		# A12 is 2,4-dimethyl-phenylalanine, hydrophobic
+		# B27 is 4-methyl-phenylalanine, hydrophobic
+		# B30 is 4-phenyl-phenylalanine, hydrophobic
+		# BB8 is phenyl-serine, amphiphilic
 		# At buried positions, restrict to PFAMILYVW, and the D-aa equivalents.
-    	<RestrictToSpecifiedBaseResidueTypes name="core_restrictions" base_types="AIB,PRO,PHE,ALA,ILE,LEU,TYR,VAL,TRP,DPRO,DPHE,DALA,DILE,DLEU,DTYR,DVAL,DTRP,NVL,NLU,DNVL,DNLU,BB8,DBB8" selector="select_core"/>
+    	<RestrictToSpecifiedBaseResidueTypes name="core_restrictions" base_types="AIB,PRO,PHE,ALA,ILE,LEU,TYR,VAL,TRP,DPRO,DPHE,DALA,DILE,DLEU,DTYR,DVAL,DTRP,NVL,NLU,DNVL,DNLU,A12,DA12,B27,DB27,B30,DB30,BB8,DBB8" selector="select_core"/>
     	# At semi-buried positions, restrict to PAILYVNQDERKSTH, and the D-aa equivalents.
-    	<RestrictToSpecifiedBaseResidueTypes name="boundary_restrictions" base_types="AIB,PRO,ALA,ILE,LEU,TYR,VAL,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DILE,DLEU,DTYR,DVAL,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,A12,DA12,B27,DB27,B30,DB30,BB8,DBB8" selector="select_boundary"/>
+    	<RestrictToSpecifiedBaseResidueTypes name="boundary_restrictions" base_types="AIB,PRO,ALA,ILE,LEU,TYR,VAL,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DILE,DLEU,DTYR,DVAL,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,BB8,DBB8" selector="select_boundary"/>
     	# At surface-exposed positions, restrict to PANQDERKSTH, and the D-aa equivalents.
-    	<RestrictToSpecifiedBaseResidueTypes name="surf_restrictions" base_types="AIB,PRO,ALA,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,A12,DA12,B27,DB27,B30,DB30,BB8,DBB8" selector="select_surface"/>
+    	<RestrictToSpecifiedBaseResidueTypes name="surf_restrictions" base_types="AIB,PRO,ALA,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,BB8,DBB8" selector="select_surface"/>
 		
 		# Prevent repacking residues (no design, no repack)
 		<OperateOnResidueSubset name="prevent_repack" selector="select_prevent_repack">
@@ -112,7 +127,18 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 	# A MoveMap is used to specify which degrees of freedom can move and which are fixed during energy minimization.
 	# Here, all mainchain torsions (bb) and sidechain torsions (chi) of the peptide can move.
 	<MOVE_MAP_FACTORIES>
-		<MoveMapFactory name="fdes_mf" bb="false" chi="false" jumps="true">
+		# First round of fastdesign, only allow side-chains to move
+		<MoveMapFactory name="fdes_mm1" bb="false" chi="false" jumps="false">
+			<Chi residue_selector="select_peptide" enable="true" />
+			<Chi residue_selector="get_original_near_peptide" enable="true" />
+		</MoveMapFactory>
+		# Second round of fastdesign, allow side-chains and the rigid-body transform to the peptide (the jump) to move
+		<MoveMapFactory name="fdes_mm2" bb="false" chi="false" jumps="true">
+			<Chi residue_selector="select_peptide" enable="true" />
+			<Chi residue_selector="get_original_near_peptide" enable="true" />
+		</MoveMapFactory>
+		# Third round of fastdesign, allow side-chains, the rigid-body transform, and the peptide backbone to move
+		<MoveMapFactory name="fdes_mm3" bb="false" chi="false" jumps="true">
 			<Backbone residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="get_original_near_peptide" enable="true" />
@@ -141,13 +167,37 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 		# Add net charge constraint to require a net charge of -1 or lower
 		<AddNetChargeConstraintMover name="addchargecsts" filename="design_inputs/desired_peptide.charge" selector="select_peptide" />
 		# Add disulfide bonds
-		<Disulfidize name="add_disulfide" scorefxn="ref_highhbond" set1="select_peptide_nostubs" set2="select_peptide_nostubs" use_d_cys="true" min_loop="4" mutate_gly="true" />
+		<Disulfidize name="add_disulfide" scorefxn="ref" set1="select_peptide_nostubs" set2="select_peptide_nostubs" use_d_cys="true" min_loop="4" mutate_gly="true" />
 		# Store the MMP8 residue selection close to the peptide to avoid selection changes caused by peptide design
 		<StoreResidueSubset name="store_near_peptide" subset_name="subset_near_peptide" residue_selector="select_near_peptide" />
 		
 		# Alternating rounds of sequence design and torsion-space energy minimization, while ramping the repulsive energy term.
 		# Here, a modified scorefunction with constraints and aa_composition energy terms activated.
-		<FastDesign name="fdes" movemap_factory="fdes_mf" scorefxn="ref_highhbond" repeats="3" 
+		<FastDesign name="fdes1" movemap_factory="fdes_mm1" scorefxn="ref_highhbond" repeats="3" 
+		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,restrict_disulfide,extra_rotamer" 
+		packer_palette="design_palette" ramp_down_constraints="false" 
+		use_masala_cfn_optimizers="true" 
+		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
+			<MasalaOptimizerConfiguration>
+        			<MonteCarloCostFunctionNetworkOptimizer set_cpu_threads_to_request="0" set_attempts_per_problem="16" 
+				set_annealing_schedule_by_name="LinearAnnealingSchedule" set_annealing_steps_per_attempt="1000000" 
+				set_do_greedy_refinement="true" set_greedy_refinement_mode="refine_all" />
+    			</MasalaOptimizerConfiguration>
+		</FastDesign>
+
+		<FastDesign name="fdes2" movemap_factory="fdes_mm2" scorefxn="ref_highhbond" repeats="3" 
+		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,restrict_disulfide,extra_rotamer" 
+		packer_palette="design_palette" ramp_down_constraints="false" 
+		use_masala_cfn_optimizers="true" 
+		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
+			<MasalaOptimizerConfiguration>
+        			<MonteCarloCostFunctionNetworkOptimizer set_cpu_threads_to_request="0" set_attempts_per_problem="16" 
+				set_annealing_schedule_by_name="LinearAnnealingSchedule" set_annealing_steps_per_attempt="1000000" 
+				set_do_greedy_refinement="true" set_greedy_refinement_mode="refine_all" />
+    			</MasalaOptimizerConfiguration>
+		</FastDesign>
+
+		<FastDesign name="fdes3" movemap_factory="fdes_mm3" scorefxn="ref_mediumhbond" repeats="3" 
 		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,restrict_disulfide,extra_rotamer" 
 		packer_palette="design_palette" ramp_down_constraints="false" 
 		use_masala_cfn_optimizers="true" 
@@ -174,13 +224,13 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 		# With weak constraints for the stub in the pocket
 		<Add mover="add_csts" />
 		<Add mover="add_disulfide" />
-		<Add mover="fdes" />
+		<Add mover="fdes1" />
 		# Remove pocket constraint
 		<Add mover="rm_csts" />
 		<Add mover="peptide_bond1" />
-		<Add mover="fdes" />
+		<Add mover="fdes2" />
 		<Add mover="peptide_bond1" />
-		<Add mover="fdes" />
+		<Add mover="fdes3" />
 		# A side-effect of the DeclareBond mover is the correction of positions of H and O atoms that depend on the peptide bond.
 		<Add mover="peptide_bond1" />
 		<!--Add filter="oversat" />
