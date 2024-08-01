@@ -16,7 +16,8 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 			<Reweight scoretype="chainbreak" weight="25.0" />
 			<Reweight scoretype="voids_penalty" weight="0.1" />
 			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
-			<Reweight scoretype="metalbinding_constraint" weight="1.0" />
+			<Reweight scoretype="metalbinding_constraint" weight="10.0" />
+			<Reweight scoretype="netcharge" weight="1.0" />
 		</ScoreFunction>
 		# The default scorefunction with increased hydrogen bond weights, aa_composition, aspartimide_penalty, and constraints.
 		<ScoreFunction name="ref_mediumhbond" weights="ref2015" >
@@ -27,7 +28,8 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 			<Reweight scoretype="chainbreak" weight="25.0" />
 			<Reweight scoretype="voids_penalty" weight="0.1" />
 			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
-			<Reweight scoretype="metalbinding_constraint" weight="1.0" />
+			<Reweight scoretype="metalbinding_constraint" weight="10.0" />
+			<Reweight scoretype="netcharge" weight="1.0" />
 		</ScoreFunction>
 	</SCOREFXNS>
 
@@ -225,11 +227,11 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 		<Add mover="add_csts" />
 		<Add mover="add_disulfide" />
 		<Add mover="fdes1" />
-		# Remove pocket constraint
-		<Add mover="rm_csts" />
 		<Add mover="peptide_bond1" />
 		<Add mover="fdes2" />
 		<Add mover="peptide_bond1" />
+		# Remove pocket constraint
+		<Add mover="rm_csts" />
 		<Add mover="fdes3" />
 		# A side-effect of the DeclareBond mover is the correction of positions of H and O atoms that depend on the peptide bond.
 		<Add mover="peptide_bond1" />
