@@ -18,6 +18,7 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
 			<Reweight scoretype="metalbinding_constraint" weight="10.0" />
 			<Reweight scoretype="netcharge" weight="1.0" />
+			<Reweight scoretype="atom_pair_constraint" weight="1.0" />
 		</ScoreFunction>
 		# The default scorefunction with increased hydrogen bond weights, aa_composition, aspartimide_penalty, and constraints.
 		<ScoreFunction name="ref_mediumhbond" weights="ref2015" >
