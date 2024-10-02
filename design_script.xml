@@ -1,8 +1,3 @@
-<root
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:noNamespaceSchemaLocation="rosetta.xsd"
-/>
-
 <ROSETTASCRIPTS>
 	<SCOREFXNS>
 		# The current Rosetta default scorefunction.
@@ -20,8 +15,34 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 			<Reweight scoretype="netcharge" weight="1.0" />
 			<Reweight scoretype="atom_pair_constraint" weight="1.0" />
 		</ScoreFunction>
-		# The default scorefunction with increased hydrogen bond weights, aa_composition, aspartimide_penalty, and constraints.
+		# The default scorefunction with medium hydrogen bond weights and constraints.
 		<ScoreFunction name="ref_mediumhbond" weights="ref2015" >
+			<Reweight scoretype="hbond_lr_bb" weight="17.0" />
+			<Reweight scoretype="hbond_sr_bb" weight="17.0" />
+			<Reweight scoretype="aa_composition" weight="1.0" />
+			<Reweight scoretype="aspartimide_penalty" weight="1.0" />
+			<Reweight scoretype="chainbreak" weight="25.0" />
+			<Reweight scoretype="voids_penalty" weight="0.1" />
+			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
+			<Reweight scoretype="metalbinding_constraint" weight="10.0" />
+			<Reweight scoretype="netcharge" weight="1.0" />
+			<Reweight scoretype="atom_pair_constraint" weight="0.7" />
+		</ScoreFunction>
+		# The default scorefunction with low hydrogen bond weights and constraints.
+		<ScoreFunction name="ref_lowhbond" weights="ref2015" >
+			<Reweight scoretype="hbond_lr_bb" weight="13.0" />
+			<Reweight scoretype="hbond_sr_bb" weight="13.0" />
+			<Reweight scoretype="aa_composition" weight="1.0" />
+			<Reweight scoretype="aspartimide_penalty" weight="1.0" />
+			<Reweight scoretype="chainbreak" weight="25.0" />
+			<Reweight scoretype="voids_penalty" weight="0.1" />
+			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
+			<Reweight scoretype="metalbinding_constraint" weight="10.0" />
+			<Reweight scoretype="netcharge" weight="1.0" />
+			<Reweight scoretype="atom_pair_constraint" weight="0.3" />
+		</ScoreFunction>
+		# The default scorefunction with regular hydrogen bond weights and no constraints.
+		<ScoreFunction name="ref_hbond" weights="ref2015" >
 			<Reweight scoretype="hbond_lr_bb" weight="10.0" />
 			<Reweight scoretype="hbond_sr_bb" weight="10.0" />
 			<Reweight scoretype="aa_composition" weight="1.0" />
@@ -31,6 +52,20 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
 			<Reweight scoretype="metalbinding_constraint" weight="10.0" />
 			<Reweight scoretype="netcharge" weight="1.0" />
+		</ScoreFunction>
+
+		# For output
+		<ScoreFunction name="ref_output" weights="ref2015" >
+			<Reweight scoretype="hbond_lr_bb" weight="10.0" />
+			<Reweight scoretype="hbond_sr_bb" weight="10.0" />
+			<Reweight scoretype="aa_composition" weight="1.0" />
+			<Reweight scoretype="aspartimide_penalty" weight="1.0" />
+			<Reweight scoretype="chainbreak" weight="25.0" />
+			<Reweight scoretype="voids_penalty" weight="0.1" />
+			<Reweight scoretype="buried_unsatisfied_penalty" weight="1.0" />
+			<Reweight scoretype="metalbinding_constraint" weight="10.0" />
+			<Reweight scoretype="netcharge" weight="1.0" />
+			<Reweight scoretype="atom_pair_constraint" weight="1.0" />
 		</ScoreFunction>
 	</SCOREFXNS>
 
@@ -49,40 +84,41 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 		# These positions will be restricted to becoming L-amino acids during design.
 		<Phi name="negPhi" select_positive_phi="false" />
 		# Select the most buried residues.
-    	<Layer name="select_core" select_core="true" select_boundary="false" select_surface="false" core_cutoff="2.5" surface_cutoff="1.0" />
-    	# Select partially buried residues.
-    	<Layer name="select_boundary" select_core="false" select_boundary="true" select_surface="false" core_cutoff="2.5" surface_cutoff="1.0" />
-    	# Select fully solvent-exposed residues.
-    	<Layer name="select_surface" select_core="false" select_boundary="false" select_surface="true" core_cutoff="2.5" surface_cutoff="1.0" />
-		# Select positions which, when mutated to AIB, have Ramachandran scores below a given threshold (-0.4 kcal/mol):
-		<RamaMutationSelector name="aib_positions" target_type="AIB" score_threshold="-0.4" />
-    	# Select positions which can NOT accommodate AIB:
-    	<Not name="not_aib_positions" selector="aib_positions" />
+    		<Layer name="select_core" select_core="true" select_boundary="false" select_surface="false" core_cutoff="2.5" surface_cutoff="1.0" />
+    		# Select partially buried residues.
+    		<Layer name="select_boundary" select_core="false" select_boundary="true" select_surface="false" core_cutoff="2.5" surface_cutoff="1.0" />
+    		# Select fully solvent-exposed residues.
+    		<Layer name="select_surface" select_core="false" select_boundary="false" select_surface="true" core_cutoff="2.5" surface_cutoff="1.0" />
 
 		# Select MMP8 and peptide residues.
 		<Index name="select_MMP8" resnums="1-161" />
 		<Index name="select_stubs" resnums="170-171" />
+		<Index name="select_s2" resnums="171" />
 		<Not name="select_peptide" selector="select_MMP8" />
-		<Logic name="select_peptide_nostubs" selector="select_peptide and (not select_stubs)" />
 		<Neighborhood name="select_near_peptide" selector="select_peptide" distance="8.0"  include_focus_in_subset="false" />
-		<Index name="select_lower_cutpoint_pep" resnums="%%lower_cut_point%%" />
-		<Index name="select_upper_cutpoint_pep" resnums="%%upper_cut_point%%" />
-		<Index name="select_pocket" resnums="108,109,112,129,131-134,171" />
+		<Index name="select_lower_cutpoint_pep" resnums="179" />
+		<Index name="select_upper_cutpoint_pep" resnums="162" />
+		<Index name="select_129" resnums="129" />
 		# Retrieve the original select_near_peptide residue subset created by the "StoreResidueSubset" mover
 		<StoredResidueSubset name="get_original_near_peptide" subset_name="subset_near_peptide" />
 		# Prevent repacking MMP8 residues that are not close to the peptide
 		<Logic name="select_prevent_repack" selector="select_MMP8 and (not get_original_near_peptide)" />	
-		# Restrict to repacking stubs and peptide-neighborhood MMP8 residues
-		<Logic name="select_restrict_repack" selector="select_stubs or get_original_near_peptide" />
-		# Restrict to repacking CYS and DCYS in the peptide
+		# Restrict to repacking stubs, disulfides, and peptide-neighborhood MMP8 residues
 		<ResidueName name="select_CYS" residue_names="CYS,DCYS" />
-		<Logic name="select_peptide_CYS" selector="select_peptide_nostubs and select_CYS" />
+		<Logic name="select_restrict_repack" selector="select_stubs or (select_peptide and select_CYS) or get_original_near_peptide" />
+		# Select peptide without stubs for disulfide
+		<Logic name="select_peptide_nostubs" selector="select_peptide and (not select_stubs)" />
+
+		# Select positions which, when mutated to AIB, have Ramachandran scores below a given threshold (-0.4 kcal/mol):
+		<RamaMutationSelector name="aib_positions" target_type="AIB" score_threshold="-0.4" residue_selector="select_peptide" />
+		# Select positions which can NOT accommodate AIB:
+                <Not name="not_aib_positions" selector="aib_positions" />
 	</RESIDUE_SELECTORS>
 
 	# The FILTERS section allows users to configure filters.
 	<FILTERS>
 		# Filter to avoid score function artifact of having more than two hydrogen bonds to carbonyls.
-		<OversaturatedHbondAcceptorFilter name="oversat" scorefxn="ref" max_allowed_oversaturated="0" consider_mainchain_only="false"/>
+		<OversaturatedHbondAcceptorFilter name="oversat" scorefxn="ref" max_allowed_oversaturated="0" consider_mainchain_only="true" donor_selector="select_peptide" acceptor_selector="select_peptide" />
 		# Filter to ensure a minimum number of hbonds in the peptide.
 		<PeptideInternalHbondsFilter name="min_internal_hbonds" residue_selector="select_peptide" hbond_cutoff="6" />
 	</FILTERS>
@@ -91,25 +127,26 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 	# behavior of Rosetta's "Packer" module.  The Packer, in turn, is used for side-chain identity and rotamer optimization.
 	<TASKOPERATIONS>
 		# Prohibit L-amino acids at positions with positive phi dihedral values:
-    	<ProhibitResidueProperties name="no_laa_at_pos_phi" properties="L_AA" selector="posPhi" />
-    	# Prohibit D-amino acids at positions with negative phi dihedral values:
-    	<ProhibitResidueProperties name="no_daa_at_neg_phi" properties="D_AA" selector="negPhi" />
+    		<ProhibitResidueProperties name="no_laa_at_pos_phi" properties="L_AA" selector="posPhi" />
+    		# Prohibit D-amino acids at positions with negative phi dihedral values:
+    		<ProhibitResidueProperties name="no_daa_at_neg_phi" properties="D_AA" selector="negPhi" />
 		# Prohibit AIB at positions incompatible with AIB:
-    	<ProhibitSpecifiedBaseResidueTypes name="limit_aib" base_types="AIB" selector="not_aib_positions" />
+    		<ProhibitSpecifiedBaseResidueTypes name="limit_aib" base_types="AIB" selector="not_aib_positions" />
 		# Prohibit glycine and methionine everywhere:
-    	<ProhibitSpecifiedBaseResidueTypes name="no_gly_met_cys" base_types="GLY,MET,DMET,CYS" />
+    		<ProhibitSpecifiedBaseResidueTypes name="no_gly_met_cys" base_types="GLY,MET,DMET,CYS" />
 		
 		# A12 is 2,4-dimethyl-phenylalanine, hydrophobic
-		# B27 is 4-methyl-phenylalanine, hydrophobic
-		# B30 is 4-phenyl-phenylalanine, hydrophobic
-		# BB8 is phenyl-serine, amphiphilic
-		# At buried positions, restrict to PFAMILYVW, and the D-aa equivalents.
-    	<RestrictToSpecifiedBaseResidueTypes name="core_restrictions" base_types="AIB,PRO,PHE,ALA,ILE,LEU,TYR,VAL,TRP,DPRO,DPHE,DALA,DILE,DLEU,DTYR,DVAL,DTRP,NVL,NLU,DNVL,DNLU,A12,DA12,B27,DB27,B30,DB30,BB8,DBB8" selector="select_core"/>
-    	# At semi-buried positions, restrict to PAILYVNQDERKSTH, and the D-aa equivalents.
-    	<RestrictToSpecifiedBaseResidueTypes name="boundary_restrictions" base_types="AIB,PRO,ALA,ILE,LEU,TYR,VAL,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DILE,DLEU,DTYR,DVAL,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,BB8,DBB8" selector="select_boundary"/>
-    	# At surface-exposed positions, restrict to PANQDERKSTH, and the D-aa equivalents.
-    	<RestrictToSpecifiedBaseResidueTypes name="surf_restrictions" base_types="AIB,PRO,ALA,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,BB8,DBB8" selector="select_surface"/>
-		
+                # B27 is 4-methyl-phenylalanine, hydrophobic
+                # B30 is 4-phenyl-phenylalanine, hydrophobic
+                # BB8 is phenyl-serine, amphiphilic
+                # At buried positions, restrict to PFAMILYVW, and the D-aa equivalents.
+        	<RestrictToSpecifiedBaseResidueTypes name="core_restrictions" base_types="AIB,PRO,PHE,ALA,ILE,LEU,TYR,VAL,TRP,DPRO,DPHE,DALA,DILE,DLEU,DTYR,DVAL,DTRP,NVL,NLU,DNVL,DNLU,A12,DA12,B27,DB27,B30,DB30,BB8,DBB8" selector="select_core"/>
+        	# At semi-buried positions, restrict to PAILYVNQDERKSTH, and the D-aa equivalents.
+        	<RestrictToSpecifiedBaseResidueTypes name="boundary_restrictions" base_types="AIB,PRO,ALA,ILE,LEU,TYR,VAL,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DILE,DLEU,DTYR,DVAL,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,BB8,DBB8" selector="select_boundary"/>
+        	# At surface-exposed positions, restrict to PANQDERKSTH, and the D-aa equivalents.
+		<RestrictToSpecifiedBaseResidueTypes name="surf_restrictions" base_types="AIB,PRO,ALA,ASN,GLN,ASP,GLU,ARG,LYS,SER,THR,HIS,DPRO,DALA,DASN,DGLN,DASP,DGLU,DARG,DLYS,DSER,DTHR,DHIS,ORN,DORN,DPP,DDPP,DAB,DDAB,HYP,DHYP,BB8,DBB8" selector="select_surface"/>
+
+
 		# Prevent repacking residues (no design, no repack)
 		<OperateOnResidueSubset name="prevent_repack" selector="select_prevent_repack">
 			<PreventRepackingRLT />
@@ -118,30 +155,37 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 		<OperateOnResidueSubset name="restrict_repack" selector="select_restrict_repack">
 			<RestrictToRepackingRLT />
 		</OperateOnResidueSubset>
-		# Restrict design for CYS or DCYS in the peptide to not break disulfide bond
-		<OperateOnResidueSubset name="restrict_disulfide" selector_logic="select_peptide_CYS">
-    		<RestrictToRepackingRLT />
-		</OperateOnResidueSubset>
 
 		# Increase the fineness of the discretization of conformational rotamers, sampling chi1 and chi2 more finely.
 		<ExtraRotamersGeneric name="extra_rotamer" ex1="true" ex2="true" extrachi_cutoff="0" />
+		<IncludeCurrent name="include_current_rotamer" />
 	</TASKOPERATIONS>
 
 	# A MoveMap is used to specify which degrees of freedom can move and which are fixed during energy minimization.
-	# Here, all mainchain torsions (bb) and sidechain torsions (chi) of the peptide can move.
 	<MOVE_MAP_FACTORIES>
-		# First round of fastdesign, only allow side-chains to move
-		<MoveMapFactory name="fdes_mm1" bb="false" chi="false" jumps="false">
+		<MoveMapFactory name="frlx_mf1" bb="false" chi="false" jumps="false">
+			<Backbone residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="get_original_near_peptide" enable="true" />
 		</MoveMapFactory>
-		# Second round of fastdesign, allow side-chains and the rigid-body transform to the peptide (the jump) to move
-		<MoveMapFactory name="fdes_mm2" bb="false" chi="false" jumps="true">
+
+		<MoveMapFactory name="frlx_mf2" bb="false" chi="false" jumps="true">
+			<Backbone residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="get_original_near_peptide" enable="true" />
 		</MoveMapFactory>
-		# Third round of fastdesign, allow side-chains, the rigid-body transform, and the peptide backbone to move
-		<MoveMapFactory name="fdes_mm3" bb="false" chi="false" jumps="true">
+
+		<MoveMapFactory name="fdes_mf1" bb="false" chi="false" jumps="false">
+			<Chi residue_selector="select_peptide" enable="true" />
+			<Chi residue_selector="get_original_near_peptide" enable="true" />
+		</MoveMapFactory>
+
+		<MoveMapFactory name="fdes_mf2" bb="false" chi="false" jumps="true">
+			<Chi residue_selector="select_peptide" enable="true" />
+			<Chi residue_selector="get_original_near_peptide" enable="true" />
+		</MoveMapFactory>
+
+		<MoveMapFactory name="fdes_mf3" bb="false" chi="false" jumps="true">
 			<Backbone residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="select_peptide" enable="true" />
 			<Chi residue_selector="get_original_near_peptide" enable="true" />
@@ -152,32 +196,52 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 	# that modify a structure in some way:
 	<MOVERS>
 		# A mover to declare a bond connecting the termini, upper cutpoint is with N terminal, lower with C terminal
-		<DeclareBond name="peptide_bond1" res1="%%upper_cut_point%%" atom1="N" atom2="C" res2="%%lower_cut_point%%" add_termini="true" />
+		<DeclareBond name="peptide_bond1" res1="162" atom1="N" atom2="C" res2="179" add_termini="true" />
+		<DeclareBond name="peptide_bond2" res1="170" atom1="N" atom2="C" res2="169" add_termini="true" />
 		# Add two virtual atoms to each cutpoint, virtual CA and C before the upper cutpoint, virtual N and CA after the lower cutpoint
 		# Want the virtual atoms to align with the real ones so that cyclization is ideal
 		<ModifyVariantType name="pep_cutpoint_upper" residue_selector="select_upper_cutpoint_pep" add_type="CUTPOINT_UPPER" />
-        <ModifyVariantType name="pep_cutpoint_lower" residue_selector="select_lower_cutpoint_pep" add_type="CUTPOINT_LOWER" />
+        	<ModifyVariantType name="pep_cutpoint_lower" residue_selector="select_lower_cutpoint_pep" add_type="CUTPOINT_LOWER" />
 		<AtomTree name="foldtree" fold_tree_file="design_inputs/foldtree_MMP8.txt" />
 		
+		# Add disulfide bonds
+		<Disulfidize name="add_disulfide" scorefxn="ref" set1="select_peptide_nostubs" set2="select_peptide_nostubs" use_d_cys="true" min_loop="4" mutate_gly="true" min_disulfides="1" />
 		<SetupMetalsMover name="metalfix" />
+
 		# Add constraints to keep stub 2 inside the pocket
-		<AddConstraints name="add_csts" >
-        	<AtomPairConstraintGenerator name="pocket_csts" residue_selector="select_pocket" ca_only="true" native="false" sd="2" />
-    	</AddConstraints>
-    	<RemoveConstraints name="rm_csts" constraint_generators="pocket_csts" />
+		<AddConstraints name="add_peptide_csts" >
+			<AtomPairConstraintGenerator name="peptide_csts" residue_selector="select_peptide or get_original_near_peptide" ca_only="true" native="false" sd="2" weight="1" />
+    		</AddConstraints>
+    		<RemoveConstraints name="rm_peptide_csts" constraint_generators="peptide_csts" />
+		<AddConstraints name="add_pocket_csts" >
+                	<DistanceConstraintGenerator name="pocket_csts1" residue_selector1="select_s2" residue_selector2="select_129" atom_name1="CD" atom_name2="CA" function="HARMONIC 6.0 0.25" />
+			<DistanceConstraintGenerator name="pocket_csts2" residue_selector1="select_s2" residue_selector2="select_129" atom_name1="CE" atom_name2="CA" function="HARMONIC 5.4 0.25" />
+        	</AddConstraints>
+        	<RemoveConstraints name="rm_pocket_csts" constraint_generators="pocket_csts1,pocket_csts2" />
+
 		# Composition constraints are used with the aa_composition score term to add penalty for deviation from a desired amino acid composition.
 		<AddCompositionConstraintMover name="addcompcsts" selector="select_peptide" filename="design_inputs/desired_makeup_MMP8.comp" />
 		# Add net charge constraint to require a net charge of -1 or lower
 		<AddNetChargeConstraintMover name="addchargecsts" filename="design_inputs/desired_peptide.charge" selector="select_peptide" />
-		# Add disulfide bonds
-		<Disulfidize name="add_disulfide" scorefxn="ref" set1="select_peptide_nostubs" set2="select_peptide_nostubs" use_d_cys="true" min_loop="4" mutate_gly="true" />
 		# Store the MMP8 residue selection close to the peptide to avoid selection changes caused by peptide design
 		<StoreResidueSubset name="store_near_peptide" subset_name="subset_near_peptide" residue_selector="select_near_peptide" />
 		
 		# Alternating rounds of sequence design and torsion-space energy minimization, while ramping the repulsive energy term.
 		# Here, a modified scorefunction with constraints and aa_composition energy terms activated.
-		<FastDesign name="fdes1" movemap_factory="fdes_mm1" scorefxn="ref_highhbond" repeats="3" 
-		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,restrict_disulfide,extra_rotamer" 
+		<FastRelax name="frlx1" movemap_factory="frlx_mf1" scorefxn="ref_highhbond" repeats="3" 
+		task_operations="prevent_repack,restrict_repack,extra_rotamer,include_current_rotamer" 
+		packer_palette="design_palette" ramp_down_constraints="false" 
+		use_masala_cfn_optimizers="true" 
+		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
+			<MasalaOptimizerConfiguration>
+        			<MonteCarloCostFunctionNetworkOptimizer set_cpu_threads_to_request="0" set_attempts_per_problem="16" 
+				set_annealing_schedule_by_name="LinearAnnealingSchedule" set_annealing_steps_per_attempt="1000000" 
+				set_do_greedy_refinement="true" set_greedy_refinement_mode="refine_all" />
+    			</MasalaOptimizerConfiguration>
+		</FastRelax>
+
+		<FastDesign name="fdes1" movemap_factory="fdes_mf1" scorefxn="ref_highhbond" repeats="3" 
+		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,extra_rotamer,include_current_rotamer" 
 		packer_palette="design_palette" ramp_down_constraints="false" 
 		use_masala_cfn_optimizers="true" 
 		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
@@ -188,8 +252,20 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
     			</MasalaOptimizerConfiguration>
 		</FastDesign>
 
-		<FastDesign name="fdes2" movemap_factory="fdes_mm2" scorefxn="ref_highhbond" repeats="3" 
-		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,restrict_disulfide,extra_rotamer" 
+		<FastRelax name="frlx2" movemap_factory="frlx_mf2" scorefxn="ref_mediumhbond" repeats="3" 
+		task_operations="prevent_repack,restrict_repack,extra_rotamer,include_current_rotamer" 
+		packer_palette="design_palette" ramp_down_constraints="false" 
+		use_masala_cfn_optimizers="true" 
+		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
+			<MasalaOptimizerConfiguration>
+        			<MonteCarloCostFunctionNetworkOptimizer set_cpu_threads_to_request="0" set_attempts_per_problem="16" 
+				set_annealing_schedule_by_name="LinearAnnealingSchedule" set_annealing_steps_per_attempt="1000000" 
+				set_do_greedy_refinement="true" set_greedy_refinement_mode="refine_all" />
+    			</MasalaOptimizerConfiguration>
+		</FastRelax>
+
+		<FastDesign name="fdes2" movemap_factory="fdes_mf2" scorefxn="ref_mediumhbond" repeats="3" 
+		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,extra_rotamer,include_current_rotamer" 
 		packer_palette="design_palette" ramp_down_constraints="false" 
 		use_masala_cfn_optimizers="true" 
 		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
@@ -200,8 +276,20 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
     			</MasalaOptimizerConfiguration>
 		</FastDesign>
 
-		<FastDesign name="fdes3" movemap_factory="fdes_mm3" scorefxn="ref_mediumhbond" repeats="3" 
-		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,restrict_disulfide,extra_rotamer" 
+		<FastRelax name="frlx3" movemap_factory="frlx_mf2" scorefxn="ref_lowhbond" repeats="3" 
+		task_operations="prevent_repack,restrict_repack,extra_rotamer,include_current_rotamer" 
+		packer_palette="design_palette" ramp_down_constraints="false" 
+		use_masala_cfn_optimizers="true" 
+		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
+			<MasalaOptimizerConfiguration>
+        			<MonteCarloCostFunctionNetworkOptimizer set_cpu_threads_to_request="0" set_attempts_per_problem="16" 
+				set_annealing_schedule_by_name="LinearAnnealingSchedule" set_annealing_steps_per_attempt="1000000" 
+				set_do_greedy_refinement="true" set_greedy_refinement_mode="refine_all" />
+    			</MasalaOptimizerConfiguration>
+		</FastRelax>
+
+		<FastDesign name="fdes3" movemap_factory="fdes_mf3" scorefxn="ref_hbond" repeats="3" 
+		task_operations="no_laa_at_pos_phi,no_daa_at_neg_phi,limit_aib,no_gly_met_cys,core_restrictions,boundary_restrictions,surf_restrictions,prevent_repack,restrict_repack,extra_rotamer,include_current_rotamer" 
 		packer_palette="design_palette" ramp_down_constraints="false" 
 		use_masala_cfn_optimizers="true" 
 		masala_cfn_optimizer="MonteCarloCostFunctionNetworkOptimizer" >
@@ -211,35 +299,72 @@ xsi:noNamespaceSchemaLocation="rosetta.xsd"
 				set_do_greedy_refinement="true" set_greedy_refinement_mode="refine_all" />
     			</MasalaOptimizerConfiguration>
 		</FastDesign>
+
+		<MutateResidue name="L_to_D" target="171" new_res="DNLU" preserve_atom_coords="true" />
 	</MOVERS>
 
 	# The PROTOCOLS section is the section in which the user invokes the modules
 	# defined above in linear sequence to define a protocol:
 	<PROTOCOLS>
+		<Add mover="L_to_D" />
 		<Add mover="peptide_bond1" />
+		<Add mover="peptide_bond2" />
 		<Add mover="pep_cutpoint_upper" />
 		<Add mover="pep_cutpoint_lower" />
 		<Add mover="foldtree" />
+		# Filter
+		<Add filter="oversat" />
+		<Add filter="min_internal_hbonds" />
+		# Add requirements
 		<Add mover="metalfix" />
 		<Add mover="addcompcsts" />
 		<Add mover="addchargecsts" />
 		<Add mover="store_near_peptide" />
-		# With weak constraints for the stub in the pocket
-		<Add mover="add_csts" />
 		<Add mover="add_disulfide" />
+		# With constraints for the stub in the pocket
+		<Add mover="add_pocket_csts" />
+		<Add mover="add_peptide_csts" />
+		# First round relax
+		<Add mover="frlx1" />
+		<Add mover="peptide_bond1" />
+		<Add mover="peptide_bond2" />
+		<Add filter="oversat" />
+                <Add filter="min_internal_hbonds" />
+		# First round design
 		<Add mover="fdes1" />
 		<Add mover="peptide_bond1" />
+                <Add mover="peptide_bond2" />
+		<Add filter="oversat" />
+		<Add filter="min_internal_hbonds" />
+		# Second round relax
+		<Add mover="frlx2" />
+		<Add mover="peptide_bond1" />
+                <Add mover="peptide_bond2" />
+                <Add filter="oversat" />
+		<Add filter="min_internal_hbonds" />
+                # Second round design
 		<Add mover="fdes2" />
 		<Add mover="peptide_bond1" />
-		# Remove pocket constraint
-		<Add mover="rm_csts" />
-		<Add mover="fdes3" />
-		# A side-effect of the DeclareBond mover is the correction of positions of H and O atoms that depend on the peptide bond.
+                <Add mover="peptide_bond2" />
+                <Add filter="oversat" />
+                <Add filter="min_internal_hbonds" />
+		# Third round relax
+		<Add mover="frlx3" />
 		<Add mover="peptide_bond1" />
-		<!--Add filter="oversat" />
-		<Add filter="min_internal_hbonds" /-->
+                <Add mover="peptide_bond2" />
+                <Add filter="oversat" />
+		<Add filter="min_internal_hbonds" />
+		# Remove pocket constraint
+                <Add mover="rm_peptide_csts" />
+                <Add mover="rm_pocket_csts" />
+		# Third round design
+		<Add mover="fdes3" />
+		<Add mover="peptide_bond1" />
+                <Add mover="peptide_bond2" />
+                <Add filter="oversat" />
+		<Add filter="min_internal_hbonds" />
 	</PROTOCOLS>
 	
 	# We specify the scoring function that will be used to score the output structure.
-	<OUTPUT scorefxn="ref" />
+	<OUTPUT scorefxn="ref_output" />
 </ROSETTASCRIPTS>
