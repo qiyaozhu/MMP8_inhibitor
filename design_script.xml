@@ -301,6 +301,14 @@
 		</FastDesign>
 
 		<MutateResidue name="L_to_D" target="171" new_res="DNLU" preserve_atom_coords="true" />
+
+		# Dump pdb structures
+                <DumpPdb name="dumprelax1" fname="dump_relax1.pdb" />
+                <DumpPdb name="dumprelax2" fname="dump_relax2.pdb" />
+                <DumpPdb name="dumprelax3" fname="dump_relax3.pdb" />
+                <DumpPdb name="dumpdesign1" fname="dump_design1.pdb" />
+                <DumpPdb name="dumpdesign2" fname="dump_design2.pdb" />
+                <DumpPdb name="dumpdesign3" fname="dump_design3.pdb" />
 	</MOVERS>
 
 	# The PROTOCOLS section is the section in which the user invokes the modules
@@ -329,31 +337,36 @@
 		<Add mover="peptide_bond1" />
 		<Add mover="peptide_bond2" />
 		<Add filter="oversat" />
-                <Add filter="min_internal_hbonds" />
+		<Add filter="min_internal_hbonds" />
+		<Add mover="dumprelax1" />
 		# First round design
 		<Add mover="fdes1" />
 		<Add mover="peptide_bond1" />
                 <Add mover="peptide_bond2" />
 		<Add filter="oversat" />
 		<Add filter="min_internal_hbonds" />
+		<Add mover="dumpdesign1" />
 		# Second round relax
 		<Add mover="frlx2" />
 		<Add mover="peptide_bond1" />
                 <Add mover="peptide_bond2" />
                 <Add filter="oversat" />
 		<Add filter="min_internal_hbonds" />
+		<Add mover="dumprelax2" />
                 # Second round design
 		<Add mover="fdes2" />
 		<Add mover="peptide_bond1" />
                 <Add mover="peptide_bond2" />
                 <Add filter="oversat" />
-                <Add filter="min_internal_hbonds" />
+		<Add filter="min_internal_hbonds" />
+		<Add mover="dumpdesign2" />
 		# Third round relax
 		<Add mover="frlx3" />
 		<Add mover="peptide_bond1" />
                 <Add mover="peptide_bond2" />
                 <Add filter="oversat" />
 		<Add filter="min_internal_hbonds" />
+		<Add mover="dumprelax3" />
 		# Remove pocket constraint
                 <Add mover="rm_peptide_csts" />
                 <Add mover="rm_pocket_csts" />
@@ -363,6 +376,7 @@
                 <Add mover="peptide_bond2" />
                 <Add filter="oversat" />
 		<Add filter="min_internal_hbonds" />
+		<Add mover="dumpdesign3" />
 	</PROTOCOLS>
 	
 	# We specify the scoring function that will be used to score the output structure.

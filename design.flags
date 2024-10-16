@@ -1,0 +1,5 @@
+-in:file:s pdb_input/Backbone_DASP_DNLU_backbone_sol2_5340.pdb
+-write_all_connect_info true
+-in:file:fullatom
+-parser:protocol design_script.xml
+-out:prefix output_new/Design_

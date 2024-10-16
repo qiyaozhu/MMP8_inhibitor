@@ -1,0 +1,125 @@
+<ROSETTASCRIPTS>
+        <RESIDUE_SELECTORS>
+                <Index name="select_MMP8" resnums="1-161" />
+		<Not name="select_peptide" selector="select_MMP8" />
+		# peptide and binding region for QM
+                <Index name="qm_region" resnums="65,66,72-80,103-123,131-134,162-179" />
+	</RESIDUE_SELECTORS>
+
+	<SCOREFXNS>
+		# The current Rosetta default scorefunction.
+		<ScoreFunction name="ref" weights="ref2015" />
+
+		# DFTB/FMO scoring
+		<ScoreFunction name="dftb" weights="empty.wts">
+                        <Reweight scoretype="gamess_qm_energy" weight="1.0" />
+                        <Set
+    				gamess_basis_set="DFTB"
+    				gamess_dftb_taylor_expansion_order="3"
+    				gamess_dftb_dispersion_model="DFT"
+    				gamess_max_scf_iterations="100"
+    				gamess_fmo_calculation="true"
+    				gamess_max_fmo_monomer_scf_iterations="100"
+    				gamess_hybrid_molecular_orbital="3ob-3-1"
+    				gamess_hybrid_molecular_orbital_file="tools/fmo/HMO/c.txt"
+                        />
+		</ScoreFunction>
+
+            	<MultiScoreFunction name="msfxn" dump_pdbs="true" >
+                	<SimpleCombinationRule />
+                	<Region scorefxn="dftb" residue_selector="qm_region" >
+                    		<CappedBondResolutionRule/>
+                	</Region>
+                	<Region scorefxn="ref" >
+                    		<CappedBondResolutionRule/>
+                	</Region>
+            	</MultiScoreFunction>
+	</SCOREFXNS>
+
+	# This is only for filter NetCharge residue selection
+	<TASKOPERATIONS>
+                <OperateOnResidueSubset name="restrict_repack" selector="select_peptide">
+                        <RestrictToRepackingRLT />
+                </OperateOnResidueSubset>
+	</TASKOPERATIONS>
+
+	# The FILTERS section allows users to configure filters.
+        <FILTERS>
+		# Filters for later measurement and pareto analysis
+		<!--BuriedUnsatHbonds name="bunsats" scorefxn="ref" confidence="0" />
+                <PeptideInternalHbondsFilter name="internal_hbonds" residue_selector="select_peptide" hbond_cutoff="6" confidence="0" /-->
+                <CavityVolume name="cavvol" confidence="0" />
+                <AtomicContactCount name="atomic_contact" partition="jump" jump="5" confidence="0" />
+				
+		# Filters
+		<NetCharge name="netcharge" max="-1" task_operations="restrict_repack" confidence="1" />
+		<ShapeComplementarity name="shape" min_sc="0.5" min_interface="650" residue_selector1="select_MMP8" residue_selector2="select_peptide" write_int_area="1" jump="5" confidence="1" />
+		<ResidueCount name="prolinecount" min_residue_count="1" residue_types="PRO,DPRO,AIB" residue_selector="select_peptide" confidence="1" />
+		<AtomicDistance name="pocket_distance" residue1="171" atomname1="CE" residue2="129" atomname2="CA" distance="12.0" confidence="1" />
+	</FILTERS>
+
+	<SIMPLE_METRICS>
+                <!--FilterValueMetric name="bunsats_metric" filter="bunsats" />
+		<FilterValueMetric name="hbond_metric" filter="internal_hbonds" /-->
+                <FilterValueMetric name="shape_metric" filter="shape" />
+		<FilterValueMetric name="cavvol_metric" filter="cavvol" />
+		<FilterValueMetric name="atomcont_metric" filter="atomic_contact" />
+		<FilterValueMetric name="pockdist_metric" filter="pocket_distance" />
+		<!--FilterValueMetric name="proline_metric" filter="prolinecount" /-->
+
+		# Measure energy scores
+		<TotalEnergyMetric name="ref_energy"
+                        scoretype="total_score"
+                        scorefxn="ref"
+                />
+		<TotalEnergyMetric name="ms_energy"
+                        scoretype="total_score"
+                        scorefxn="msfxn"
+                />
+    	</SIMPLE_METRICS>
+
+	<ENSEMBLE_METRICS>
+                <ParetoFront name="pareto_front"
+                        real_metrics="shape_metric,cavvol_metric,atomcont_metric,pockdist_metric,ref_energy"
+                        lower_is_better="false,true,false,true,true"
+                        output_filename="pareto_analysis.txt"
+                        output_mode="tracer_and_file"
+                />
+    	</ENSEMBLE_METRICS>
+
+	# The MOVERS section allows users to define movers, which are Rosetta modules
+	# that modify a structure in some way:
+	<MOVERS>
+		<AtomTree name="foldtree" fold_tree_file="design_inputs/foldtree_MMP8.txt" />
+		<SetupMetalsMover name="metalfix" />
+		<DeclareBond name="peptide_bond1" res1="162" atom1="N" atom2="C" res2="179" />
+	</MOVERS>
+
+	# The PROTOCOLS section is the section in which the user invokes the modules
+	# defined above in linear sequence to define a protocol:
+	<PROTOCOLS>
+		<Add mover="foldtree" />
+		<Add mover="metalfix" />
+		<Add mover="peptide_bond1" />
+		# Filters
+		<Add filter="netcharge" />
+		<Add filter="shape" />
+		<Add filter="prolinecount" />
+		<Add filter="pocket_distance" />
+		# Metrics
+		<!--Add metrics="bunsats_metric" />
+		<Add metrics="hbond_metric" />
+		<Add metrics="shape_metric" />
+		<Add metrics="cavvol_metric" />
+		<Add metrics="atomcont_metric" />
+		<Add metrics="pockdist_metric" />
+		<Add metrics="proline_metric" />
+		<Add metrics="ref_energy" />
+		<Add metrics="ms_energy" /-->
+		# Pareto analysis
+		<Add ensemble_metrics="pareto_front" />
+	</PROTOCOLS>
+	
+	# We specify the scoring function that will be used to score the output structure.
+	<OUTPUT scorefxn="ref" />
+</ROSETTASCRIPTS>

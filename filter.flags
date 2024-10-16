@@ -1,0 +1,17 @@
+-in:file:l Design_list.txt
+-write_all_connect_info true
+-in:file:fullatom
+-parser:protocol filter.xml
+-out:prefix filter/
+
+-rosetta_GAMESS_bridge_temp_directory temp
+-quantum_mechanics:GAMESS:gamess_error_on_nonideal_bond_length_after_opt false
+-clean_rosetta_GAMESS_bridge_temp_directory false
+-GAMESS:GAMESS_path /mnt/home/vmulligan/GAMESS/gamess_openmp_2023_09/
+-GAMESS:GAMESS_executable_version 00
+-GAMESS:GAMESS_threads 4
+
+-GAMESS:default_smd_ior_override 1.33
+-GAMESS:default_smd_surface_tension_override 102.235
+-GAMESS:default_smd_hbond_basicity_override 7.05
+-GAMESS:default_smd_hbond_acidity_override 0.525

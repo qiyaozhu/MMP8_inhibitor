@@ -1,6 +1,0 @@
--in:file:l Backbone_list_R1000000.txt
--in:file:fullatom
--parser:protocol design_script.xml
--parser:script_vars lower_cut_point=179
--parser:script_vars upper_cut_point=162
--out:prefix output_R1000000/Design_
